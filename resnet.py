@@ -43,24 +43,44 @@ def _weights_init(m):
         init.kaiming_normal_(m.weight)
 
 class LambdaLayer(nn.Module):
+    '''
+    A subclass of torch.nn.Module ("Your models should also subclass this class")
+    Takes lambd (obviously a function) as parameter.
+    __init__ : initializes itself as a Module, and sets self.lambd to lambd
+    forward : returns self.lambd(x) (which is equivalent to lambd(x))
+    '''
+    
     def __init__(self, lambd):
         super(LambdaLayer, self).__init__()
         self.lambd = lambd
-
+    
     def forward(self, x):
         return self.lambd(x)
 
 
 class BasicBlock(nn.Module):
     expansion = 1
-
+    
     def __init__(self, in_planes, planes, stride=1, option='A'):
         super(BasicBlock, self).__init__()
+        '''
+        conv2d (https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d)
+        
+        each input data has in_channels features
+        which are convoluted with filters and added to bias
+        resulting in out_channels features
+        
+        
+        in_channels = number of input channels (in_planes)
+        planes = number of output channels (planes)
+        kernel_size, padding, stride, dilation => each may be either a int or (int, int)
+        groups ====> ???
+        '''
         self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
-
+        
         self.shortcut = nn.Sequential()
         if stride != 1 or in_planes != planes:
             if option == 'A':
