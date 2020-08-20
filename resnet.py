@@ -66,15 +66,15 @@ class BasicBlock(nn.Module):
         '''
         conv2d (https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d)
         
-        each input data has in_channels features
-        which are convoluted with filters and added to bias
-        resulting in out_channels features
-        
+        each input data has in_channels features,
+        partitioned into 'groups' groups (i.e. in_channels/groups features for each group), 
+        each of which are convoluted with out_channels/in_channels filters (each filter with in_channels/groups depth)
+        resulting in: in_channels/groups * out_channels/in_channels * groups = out_channels features
         
         in_channels = number of input channels (in_planes)
         planes = number of output channels (planes)
         kernel_size, padding, stride, dilation => each may be either a int or (int, int)
-        groups ====> ???
+        groups 
         '''
         self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
