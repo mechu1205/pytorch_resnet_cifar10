@@ -52,6 +52,7 @@ class LambdaLayer(nn.Module):
     
     def __init__(self, lambd):
         super(LambdaLayer, self).__init__()
+        # tip: use super() instead of super(A, self)
         self.lambd = lambd
     
     def forward(self, x):
@@ -60,6 +61,10 @@ class LambdaLayer(nn.Module):
 
 class BasicBlock(nn.Module):
     expansion = 1
+    
+    '''
+    
+    '''
     
     def __init__(self, in_planes, planes, stride=1, option='A'):
         super(BasicBlock, self).__init__()
@@ -72,7 +77,7 @@ class BasicBlock(nn.Module):
         resulting in: in_channels/groups * out_channels/in_channels * groups = out_channels features
         
         in_channels = number of input channels (in_planes)
-        planes = number of output channels (planes)
+        out_channels = number of output channels (planes)
         kernel_size, padding, stride, dilation => each may be either a int or (int, int)
         groups 
         '''
@@ -83,12 +88,20 @@ class BasicBlock(nn.Module):
         
         self.shortcut = nn.Sequential()
         if stride != 1 or in_planes != planes:
+            # if planes != in_planes, i.e. numbers of features of input/output are different,
+            # the shortcut path needs further modifications then identity mapping in order to modify the dimension. 
             if option == 'A':
                 """
                 For CIFAR10 ResNet paper uses option A.
                 """
                 self.shortcut = LambdaLayer(lambda x:
                                             F.pad(x[:, :, ::2, ::2], (0, 0, 0, 0, planes//4, planes//4), "constant", 0))
+                '''
+                torch.nn.functional.pad(input, pad, mode='constant', value=0)
+                https://pytorch.org/docs/master/nn.functional.html#torch.nn.functional.pad
+                
+                pads input (a N-d tensor) at the last m/2 dimensions where pad is a m-size tuple
+                '''
             elif option == 'B':
                 self.shortcut = nn.Sequential(
                      nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
@@ -116,6 +129,11 @@ class ResNet(nn.Module):
         self.linear = nn.Linear(64, num_classes)
 
         self.apply(_weights_init)
+        '''
+        nn.Module.apply(fn)
+        Applies fn recursively to every submodule (as returned by .children()) as well as self.
+        Typical use includes initializing the parameters of a model (see also torch.nn.init).
+        '''
 
     def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1]*(num_blocks-1)
